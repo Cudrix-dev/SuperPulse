@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SuperPulse</title>
+    <link rel="stylesheet" href="../shared/tokens.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+    <script type="module" src="dashboard.js"></script>
+  </head>
+  <body>
+    <!-- Soft ambient light drifting behind the layered surfaces -->
+    <div class="ambient" aria-hidden="true">
+      <span class="ambient__orb ambient__orb--a"></span>
+      <span class="ambient__orb ambient__orb--b"></span>
+    </div>
+
+    <!-- Custom title bar; native caption buttons are drawn by Windows on the right -->
+    <header class="titlebar">
+      <div class="titlebar__brand">
+        <svg class="titlebar__logo" viewBox="0 0 64 64" width="18" height="18" aria-hidden="true">
+          <defs>
+            <linearGradient id="logo-tile" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#6ad3ff" />
+              <stop offset="1" stop-color="#8b74ff" />
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#logo-tile)" />
+          <path d="M12 34 H22 L26.5 23 L32.5 45 L37.5 28 L40.5 34 H52" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="titlebar__name">SuperPulse</span>
+      </div>
+      <div class="titlebar__status" title="Sampling every second">
+        <span class="live-dot" id="live-dot"></span>
+        <span>Live</span>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="container">
+        <!-- ── Hero: the system pulse ─────────────────────────────── -->
+        <section class="card hero" data-reveal>
+          <div class="hero__header">
+            <div class="hero__primary">
+              <span class="eyebrow">Processor load</span>
+              <div class="hero__value">
+                <span id="cpu-load">0</span><span class="hero__unit">%</span>
+              </div>
+              <span class="hero__caption" id="cpu-model">Detecting processor…</span>
+            </div>
+
+            <dl class="hero__stats">
+              <div class="hero-stat">
+                <dt>Memory</dt>
+                <dd><span id="hero-mem">—</span><span class="hero-stat__unit">%</span></dd>
+              </div>
+              <div class="hero-stat">
+                <dt>GPU</dt>
+                <dd><span id="hero-gpu">—</span><span class="hero-stat__unit">%</span></dd>
+              </div>
+              <div class="hero-stat">
+                <dt>Download</dt>
+                <dd><span id="hero-net">—</span><span class="hero-stat__unit" id="hero-net-unit"></span></dd>
+              </div>
+            </dl>
+          </div>
+          <canvas class="hero__wave" id="cpu-wave" aria-label="CPU load over the last 60 seconds" role="img"></canvas>
+        </section>
+
+        <section class="grid">
+          <!-- ── Processor ───────────────────────────────────────── -->
+          <article class="card" data-reveal>
+            <header class="card__header">
+              <svg class="card__icon" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="5" y="5" width="10" height="10" rx="2" />
+                <path d="M8 2v3M12 2v3M8 15v3M12 15v3M2 8h3M2 12h3M15 8h3M15 12h3" />
+              </svg>
+              <h2>Processor</h2>
+              <span class="card__badge" id="cpu-threads">—</span>
+            </header>
+            <div class="cores" id="cores" aria-label="Per-core load"></div>
+            <dl class="facts">
+              <div><dt>Peak core</dt><dd id="cpu-peak">—</dd></div>
+              <div><dt>Temperature</dt><dd id="cpu-temp">—</dd></div>
+              <div><dt>Physical cores</dt><dd id="cpu-physical">—</dd></div>
+            </dl>
+          </article>
+
+          <!-- ── Memory ──────────────────────────────────────────── -->
+          <article class="card" data-reveal>
+            <header class="card__header">
+              <svg class="card__icon" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="2" y="6" width="16" height="8" rx="1.5" />
+                <path d="M5 14v2.5M8.5 14v2.5M11.5 14v2.5M15 14v2.5M6 9.5h2M12 9.5h2" />
+              </svg>
+              <h2>Memory</h2>
+              <span class="card__badge" id="mem-badge">—</span>
+            </header>
+            <div class="gauge-row">
+              <div class="gauge" id="mem-gauge">
+                <div class="gauge__label"><span id="mem-percent">—</span><small>%</small></div>
+              </div>
+              <dl class="facts facts--stacked">
+                <div><dt>In use</dt><dd id="mem-used">—</dd></div>
+                <div><dt>Available</dt><dd id="mem-free">—</dd></div>
+              </dl>
+            </div>
+            <div class="meter">
+              <div class="meter__label"><span>Page file</span><span id="swap-text">—</span></div>
+              <div class="meter__track"><span class="meter__fill" id="swap-fill"></span></div>
+            </div>
+          </article>
+
+          <!-- ── Graphics ────────────────────────────────────────── -->
+          <article class="card" data-reveal>
+            <header class="card__header">
+              <svg class="card__icon" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="2" y="5" width="16" height="10" rx="2" />
+                <circle cx="12.5" cy="10" r="2.5" />
+                <path d="M5 8.5h3M5 11.5h3M4 15v2.5" />
+              </svg>
+              <h2>Graphics</h2>
+              <span class="card__badge" id="gpu-vendor">—</span>
+            </header>
+            <div class="gauge-row">
+              <div class="gauge" id="gpu-gauge">
+                <div class="gauge__label"><span id="gpu-percent">—</span><small>%</small></div>
+              </div>
+              <dl class="facts facts--stacked">
+                <div><dt>Temperature</dt><dd id="gpu-temp">—</dd></div>
+                <div><dt>Power</dt><dd id="gpu-power">—</dd></div>
+              </dl>
+            </div>
+            <div class="meter">
+              <div class="meter__label"><span id="gpu-model" class="truncate">Detecting adapter…</span><span id="vram-text">—</span></div>
+              <div class="meter__track"><span class="meter__fill" id="vram-fill"></span></div>
+            </div>
+          </article>
+
+          <!-- ── Network ─────────────────────────────────────────── -->
+          <article class="card" data-reveal>
+            <header class="card__header">
+              <svg class="card__icon" viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M6 3v13M3 13l3 3 3-3M14 17V4M11 7l3-3 3 3" />
+              </svg>
+              <h2>Network</h2>
+              <span class="card__badge">All adapters</span>
+            </header>
+            <div class="net-rates">
+              <div class="net-rate net-rate--down">
+                <span class="net-rate__label">Download</span>
+                <span class="net-rate__value"><span id="net-down">—</span><small id="net-down-unit"></small></span>
+              </div>
+              <div class="net-rate net-rate--up">
+                <span class="net-rate__label">Upload</span>
+                <span class="net-rate__value"><span id="net-up">—</span><small id="net-up-unit"></small></span>
+              </div>
+            </div>
+            <canvas class="net-wave" id="net-wave" role="img" aria-label="Network throughput over the last 40 seconds"></canvas>
+          </article>
+
+          <!-- ── Storage ─────────────────────────────────────────── -->
+          <article class="card" data-reveal>
+            <header class="card__header">
+              <svg class="card__icon" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="3" y="4" width="14" height="12" rx="2" />
+                <path d="M3 11h14" />
+                <circle cx="13.5" cy="13.5" r="0.6" />
+              </svg>
+              <h2>Storage</h2>
+              <span class="card__badge" id="disk-badge">—</span>
+            </header>
+            <ul class="disks" id="disks"></ul>
+          </article>
+
+          <!-- ── System ──────────────────────────────────────────── -->
+          <article class="card" data-reveal>
+            <header class="card__header">
+              <svg class="card__icon" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="2" y="3" width="16" height="11" rx="2" />
+                <path d="M7 17h6M10 14v3" />
+              </svg>
+              <h2>System</h2>
+              <span class="card__badge" id="sys-arch">—</span>
+            </header>
+            <dl class="facts facts--list">
+              <div><dt>Operating system</dt><dd id="sys-os">—</dd></div>
+              <div><dt>Build</dt><dd id="sys-build">—</dd></div>
+              <div><dt>Device name</dt><dd id="sys-host">—</dd></div>
+              <div><dt>Uptime</dt><dd id="sys-uptime">—</dd></div>
+            </dl>
+          </article>
+        </section>
+
+        <footer class="footer" data-reveal>
+          <span id="app-version">SuperPulse</span>
+          <span class="footer__dot">·</span>
+          Developed by <a href="https://github.com/Cudrix-dev" target="_blank" rel="noreferrer">Cudrix</a>
+        </footer>
+      </div>
+    </main>
+  </body>
+</html>

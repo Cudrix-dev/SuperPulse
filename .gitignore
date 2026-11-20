@@ -1,0 +1,31 @@
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+
+# ── Build output (electron-builder) ───────────────────────────
+dist/
+out/
+*.blockmap
+
+# ── Logs & debug ──────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# ── Environment & secrets ─────────────────────────────────────
+.env
+.env.*
+*.pfx
+*.p12
+
+# ── Editors & OS ──────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Local tool state ──────────────────────────────────────────
+.claude/settings.local.json

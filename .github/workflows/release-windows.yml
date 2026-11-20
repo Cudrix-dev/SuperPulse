@@ -1,0 +1,99 @@
+# Builds SuperPulse for Windows and publishes the binaries.
+#
+#   • Every run (tag push or manual dispatch) uploads the installers as a
+#     workflow artifact.
+#   • Pushing a version tag (v1.2.3) additionally creates a GitHub Release
+#     with auto-generated release notes and the binaries attached.
+#
+# Cut a release:
+#   git tag v1.0.0 && git push origin v1.0.0
+
+name: Release (Windows)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+# contents: write is required to create the GitHub Release.
+permissions:
+  contents: write
+
+# Never run two builds of the same ref at once.
+concurrency:
+  group: release-windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build & package (windows-latest)
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    env:
+      # No code-signing certificate is configured: skip signing discovery.
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      # Note: `npm run dist` passes `--publish never`; releases are created
+      # by softprops/action-gh-release below, not by electron-builder.
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Cache Electron and electron-builder downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      # For tag builds, the tag is the source of truth for the version, so
+      # v1.4.0 always produces SuperPulse-Setup-1.4.0-x64.exe.
+      - name: Apply version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          npm version $version --no-git-tag-version --allow-same-version
+          Write-Host "Building SuperPulse $version"
+
+      - name: Build Windows installers (NSIS, MSI, portable)
+        run: npm run dist
+
+      - name: List build output
+        shell: pwsh
+        run: Get-ChildItem dist -File | Format-Table Name, @{ n = 'Size (MB)'; e = { [math]::Round($_.Length / 1MB, 1) } }
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SuperPulse-windows-x64-${{ github.run_number }}
+          path: |
+            dist/*.exe
+            dist/*.msi
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SuperPulse ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.exe
+            dist/*.msi

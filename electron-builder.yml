@@ -1,0 +1,64 @@
+# electron-builder configuration — Windows packaging for SuperPulse.
+# Docs: https://www.electron.build/configuration
+#
+# Produces three x64 artifacts in ./dist:
+#   SuperPulse-Setup-<version>-x64.exe     NSIS installer (per-user, choose directory)
+#   SuperPulse-<version>-x64.msi           MSI package (for managed / enterprise deployment)
+#   SuperPulse-Portable-<version>-x64.exe  Portable single-file executable
+
+appId: com.cudrix.superpulse
+productName: SuperPulse
+copyright: Copyright © 2026 Cudrix
+
+directories:
+  output: dist
+  buildResources: build
+
+# Only ship what the app needs at runtime.
+files:
+  - src/**/*
+  - assets/icon.ico
+  - assets/icon.png
+  - package.json
+  - "!**/*.map"
+
+asar: true
+# systeminformation is pure JavaScript — nothing to rebuild for Electron's ABI.
+npmRebuild: false
+
+win:
+  icon: assets/icon.ico
+  executableName: SuperPulse
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: msi
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+
+nsis:
+  artifactName: ${productName}-Setup-${version}-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: SuperPulse
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  uninstallDisplayName: SuperPulse
+  deleteAppDataOnUninstall: true
+
+msi:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: SuperPulse
+  # Must never change: Windows uses it to recognise upgrades of the same product.
+  upgradeCode: f1fb8ff5-9ded-4627-bc89-a43642fcf147
+
+portable:
+  artifactName: ${productName}-Portable-${version}-${arch}.${ext}

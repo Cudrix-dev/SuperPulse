@@ -1,0 +1,94 @@
+/*
+ * SuperPulse design tokens — shared by the splash and the dashboard.
+ *
+ * Values follow Fluent 2 (Windows 11) conventions: Segoe UI Variable type
+ * ramp, translucent layered surfaces with 1px hairline strokes, and the
+ * Fluent motion curves. The palette is dark-first.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Typography ──────────────────────────────────────────────────── */
+  --font-display: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", "Inter", system-ui, sans-serif;
+  --font-text: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", "Inter", system-ui, sans-serif;
+  --font-small: "Segoe UI Variable Small", "Segoe UI Variable", "Segoe UI", "Inter", system-ui, sans-serif;
+
+  /* ── Accent: the "pulse" ─────────────────────────────────────────── */
+  --accent: #60cdff;
+  --accent-strong: #3fb8f5;
+  --accent-alt: #9a86ff;
+  --accent-glow: rgb(96 205 255 / 0.45);
+  --accent-soft: rgb(96 205 255 / 0.14);
+  --accent-gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+
+  /* ── Text ────────────────────────────────────────────────────────── */
+  --text-primary: rgb(255 255 255 / 0.96);
+  --text-secondary: rgb(255 255 255 / 0.72);
+  --text-tertiary: rgb(255 255 255 / 0.5);
+  --text-disabled: rgb(255 255 255 / 0.32);
+
+  /* ── Layered surfaces (sit on top of Mica / Acrylic) ─────────────── */
+  --surface-layer: rgb(255 255 255 / 0.035);
+  --surface-card: rgb(255 255 255 / 0.05);
+  --surface-card-hover: rgb(255 255 255 / 0.075);
+  --surface-subtle: rgb(255 255 255 / 0.06);
+  --stroke-card: rgb(255 255 255 / 0.085);
+  --stroke-subtle: rgb(255 255 255 / 0.055);
+  --stroke-highlight: rgb(255 255 255 / 0.12);
+
+  /* ── Status ──────────────────────────────────────────────────────── */
+  --status-ok: #6ccb5f;
+  --status-warn: #fce100;
+  --status-critical: #ff99a4;
+
+  /* ── Shape & depth ───────────────────────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.16), 0 8px 28px rgb(0 0 0 / 0.22);
+  --shadow-elevated: 0 2px 6px rgb(0 0 0 / 0.2), 0 24px 56px rgb(0 0 0 / 0.32);
+
+  /* ── Motion (Fluent 2 curves) ────────────────────────────────────── */
+  --ease-decelerate: cubic-bezier(0.1, 0.9, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.7, 0, 1, 0.5);
+  --ease-standard: cubic-bezier(0.8, 0, 0.2, 1);
+  --ease-soft: cubic-bezier(0.33, 0, 0.67, 1);
+
+  /* Fallback surface when the OS offers no Mica / Acrylic backdrop. */
+  --fallback-surface: radial-gradient(120% 90% at 10% 0%, #1d2230 0%, #15171d 55%, #111318 100%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  /* Transparent so the native Mica / Acrylic backdrop shows through. */
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  user-select: none;
+  cursor: default;
+}
+
+html[data-material="none"] body {
+  background: var(--fallback-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
